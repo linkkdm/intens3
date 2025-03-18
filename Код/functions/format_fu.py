@@ -23,99 +23,118 @@ def format_dates_column(df, column_name):
     return df
 
 
+# Переименовывает столбцы в файлах и сохраняет в новые пути
 def rename():
 
-    f = ['data\\CHMF Акции.csv', 'data\\MAGN Акции.csv', 'data\\NLMK Акции.csv',
-         'data\\sample_submission.csv', 'data\\Грузоперевозки.csv', 'data\\Данные-рынка-стройматериалов.csv',
-         'data\\Индекс-LME.csv', 'data\\Макропоказатели.csv', 'data\\Показатели-рынка-металла.csv',
-         'data\\Топливо.csv', 'data\\Цены-на-сырье.csv']
-    
-    rf = ['rename_data\\CHMF.csv', 'rename_data\\MAGN.csv', 'rename_data\\NLMK.csv',
-          'rename_data\\образец-подачи.csv', 'rename_data\\грузоперевозки.csv', 'rename_data\\данные-рынка-стройматериалов.csv',
-          'rename_data\\индекс-LME.csv', 'rename_data\\макропоказатели.csv', 'rename_data\\показатели-рынка-металла.csv',
-          'rename_data\\топливо.csv', 'rename_data\\цены-на-сырье.csv']
+    # Конфигурация обработки файлов
+    file_config = [
+        {
+            'input': 'data\\CHMF Акции.csv',
+            'output': 'rename_data\\CHMF.csv',
+            'columns': {
+                "Date": "date",
+                "Price": "price",
+                "Open": "open",
+                "High": "high_price",
+                "Low": "low_price",
+                "Vol.": "volume",
+                "Change %": "change_price"
+            }
+        },
+        {
+            'input': 'data\\MAGN Акции.csv',
+            'output': 'rename_data\\MAGN.csv',
+            'columns': {
+                "Дата": "date",
+                "Цена": "price",
+                "Откр.": "open",
+                "Макс.": "high_price",
+                "Мин.": "low_price",
+                "Объём": "volume",
+                "Изм. %": "change_price"
+            }
+        },
+        {
+            'input': 'data\\NLMK Акции.csv',
+            'output': 'rename_data\\NLMK.csv',
+            'columns': {
+                "Date": "date",
+                "Price": "price",
+                "Open": "open",
+                "High": "high_price",
+                "Low": "low_price",
+                "Vol.": "volume",
+                "Change %": "change_price"
+            }
+        },
+        {
+            'input': 'data\\sample_submission.csv',
+            'output': 'rename_data\\образец-подачи.csv',
+            'columns': {
+                "dt": "date",
+                "Цена на арматуру": "price",
+                "Объем": "volume"
+            }
+        },
+        {
+            'input': 'data\\Грузоперевозки.csv',
+            'output': 'rename_data\\грузоперевозки.csv',
+            'columns': {"dt": "date"}
+        },
+        {
+            'input': 'data\\Данные-рынка-стройматериалов.csv',
+            'output': 'rename_data\\данные-рынка-стройматериалов.csv',
+            'columns': {"dt": "date"}
+        },
+        {
+            'input': 'data\\Индекс-LME.csv',
+            'output': 'rename_data\\индекс-LME.csv',
+            'columns': {
+                "дата": "date",
+                "цена": "lme_price"
+            }
+        },
+        {
+            'input': 'data\\Макропоказатели.csv',
+            'output': 'rename_data\\макропоказатели.csv',
+            'columns': {
+                "dt": "date",
+                "Курс доллара": "Курс $"
+            }
+        },
+        {
+            'input': 'data\\Показатели-рынка-металла.csv',
+            'output': 'rename_data\\показатели-рынка-металла.csv',
+            'columns': {"dt": "date"}
+        },
+        {
+            'input': 'data\\Топливо.csv',
+            'output': 'rename_data\\топливо.csv',
+            'columns': {"dt": "date"}
+        },
+        {
+            'input': 'data\\Цены-на-сырье.csv',
+            'output': 'rename_data\\цены-на-сырье.csv',
+            'columns': {"dt": "date"}
+        }
+    ]
 
-    # Обработка MAGN
-    column_mapping = {
-        "Дата": "date",
-        "Цена": "price",
-        "Откр.": "open",
-        "Макс.": "high_price",
-        "Мин.": "low_price",
-        "Объём": "volume",
-        "Изм. %": "change_price"
-    }
-
-    df = pd.read_csv(f[1], encoding="utf-8")
-    df.rename(columns=column_mapping, inplace=True)
-    df.to_csv(rf[1], index=False, encoding="utf-8")
-
-
-
-    # Обработка CHMF и NLMK
-    column_mapping = {
-        "Date": "date",
-        "Price": "price",
-        "Open": "open",
-        "High": "high_price",
-        "Low": "low_price",
-        "Vol.": "volume",
-        "Change %": "change_price"
-    }
-
-    for file in [f[0], f[2]]:
-        df = pd.read_csv(file)
-        df.rename(columns=column_mapping, inplace=True)
-        df.to_csv(rf[0] if file == f[0] else rf[2], index=False, encoding="utf-8")
-
-    
-    # Обработка образец-подачи
-    column_mapping = {
-        "dt": "date",
-        "Цена на арматуру": "price",
-        "Объем": "volume"
-    }
-
-    df = pd.read_csv(f[3], encoding="utf-8")
-    df.rename(columns=column_mapping, inplace=True)
-    df.to_csv(rf[3], index=False, encoding="utf-8")
-
-
-    # Обработка грузоперевозки
-    column_mapping = {
-        "dt": "date"
-    }
-
-    df = pd.read_csv(f[4], encoding="utf-8")
-    df.rename(columns=column_mapping, inplace=True)
-    df.to_csv(rf[4], index=False, encoding="utf-8")
-
-    # Обработка данные-рынка-стройматериалов
-    column_mapping = {
-        "dt": "date"
-    }
-
-    df = pd.read_csv(f[5], encoding="utf-8")
-    df.rename(columns=column_mapping, inplace=True)
-    df.to_csv(rf[5], index=False, encoding="utf-8")
-
-
-    # Обработка индекс-LME
-    column_mapping = {
-        "дата": "date",
-        "цена": "lme_price"
-    }
-
-    df = pd.read_csv(f[5], encoding="utf-8")
-    df.rename(columns=column_mapping, inplace=True)
-    df.to_csv(rf[5], index=False, encoding="utf-8")
-
-
-    # Обработка макропоказатели
-    column_mapping = {
-        "dt": "date"
-    }
-
-    df = pd.read_csv(f[5], encoding="utf-8")
-    df.rename(columns=column_mapping, inplace=True)
-    df.to_csv(rf[5], index=False, encoding="utf-8")
+    for config in file_config:
+        try:
+            # Чтение файла с указанием кодировки
+            df = pd.read_csv(config['input'], encoding='utf-8-sig')
+            
+            # Переименование столбцов
+            df.rename(columns=config['columns'], inplace=True)
+            
+            # Сохранение результата
+            df.to_csv(config['output'], index=False, encoding='utf-8-sig')
+            
+            print(f"Успешно обработан: {config['input']} -> {config['output']}")
+            
+        except FileNotFoundError:
+            print(f"Ошибка: файл {config['input']} не найден")
+        except KeyError as e:
+            print(f"Ошибка в файле {config['input']}: отсутствует столбец {e}")
+        except Exception as e:
+            print(f"Неизвестная ошибка при обработке {config['input']}: {str(e)}")
