@@ -6,7 +6,7 @@ import numpy as np
 # %%
 
 # Выгрузка самописных функций
-from functions.format_fu import rename, format_dates_column
+from functions.format_fu import rename, format_dates_column, clean_commas
 from functions.main_fu import removing_columns
 # %%
 
@@ -76,5 +76,33 @@ file_paths = [
 
 for i in file_paths:
     format_dates_column(i, 'date')
+
+# %%
+
+# dd = pd.read_csv('rename_data\\CHMF.csv')
+
+# dd['date'].info()
+
+# %%
+
+# Приводим числа в единый формат, т.е. удаляем ненужные запятые в колонках
+try:
+
+    file_paths = [
+        'rename_data\\данные-рынка-стройматериалов.csv',
+        'rename_data\\показатели-рынка-металла.csv',
+        'rename_data\\CHMF.csv',
+        'rename_data\\MAGN.csv',
+        'rename_data\\NLMK.csv',
+        'rename_data\\грузоперевозки.csv'
+        ]
+
+    # Удаление лишних запятых в остальных файлах, с помощью написанной функции
+    for i in file_paths:
+        clean_commas(i)
+
+    print("Запятые успешно удалены, тип данных изменён.")
+except Exception as e:
+    print(f"Произошла ошибка при загрузке данных: {e}")
 
 # %%

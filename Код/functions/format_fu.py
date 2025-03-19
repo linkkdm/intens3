@@ -119,18 +119,8 @@ def rename():
             print(f"Неизвестная ошибка при обработке {config['input']}: {str(e)}")
 
 
-
+# Форматирует даты
 def format_dates_column(file_name, column_name):
-    """
-    Форматирует даты в указанной колонке DataFrame и сохраняет результат в файл
-    
-    Параметры:
-    df - исходный DataFrame
-    column_name - имя колонки с датами
-    file_name - имя файла для сохранения (без расширения)
-    format - формат файла: 'csv' (по умолчанию) или 'excel'
-    index - сохранять индекс DataFrame (по умолчанию False)
-    """
 
     df = pd.read_csv(file_name)
 
@@ -156,3 +146,15 @@ def format_dates_column(file_name, column_name):
     
     print(f"Файл сохранен как: {file_name}")
     return df
+
+
+def clean_commas(path):
+         # Загрузка данных
+        df = pd.read_csv(path)
+
+        # Применение ко всем числовым столбцам
+        for col in df.select_dtypes(include=['object']).columns:
+            if col not in ['date', 'volume', 'change_price']:
+                df[col] =  df[col].replace(',', '', regex=True).astype(float)
+
+        df.to_csv(path, sep=',', index=False)
