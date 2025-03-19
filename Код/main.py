@@ -27,7 +27,7 @@ df6 = pd.read_csv('data\\Данные-рынка-стройматериалов.
 df7 = pd.read_csv('data\\Индекс-LME.csv')
 df8 = pd.read_csv('data\\Макропоказатели.csv')
 df9 = pd.read_csv('data\\Показатели-рынка-металла.csv')
-df10 = pd.read_csv('data\\Топливо.csv')
+df10 = pd.read_csv('data\\Топливо.csv', sep=';')
 df11 = pd.read_csv('data\\Цены-на-сырье.csv')
 # %%
 
@@ -43,7 +43,16 @@ file_paths = [
 for path in file_paths:
     removed = removing_columns(path)
     print(f"Файл {path}: удалено {removed} столбцов")
-# %%
+# %% 
 
+# Преобразование столбцов в тип float
+df10['Цена на бензин'] = df10['Цена на бензин'].str.replace(',', '.').astype(float)
+df10['Цена на дт'] = df10['Цена на дт'].str.replace(',', '.').astype(float)
+
+# Изменили разделитель на запятую и сохраним файл
+df10.to_csv('data\\Топливо.csv', sep=',', index=False)
+
+# %%
 rename()
+
 # %%
