@@ -1,27 +1,6 @@
 
 import pandas as pd
 
-def format_dates_column(df, column_name):
-    # Пытаемся преобразовать в datetime с разными параметрами
-    df[column_name] = pd.to_datetime(
-        df[column_name],
-        errors='coerce',
-        infer_datetime_format=True,
-        dayfirst=False  # Сначала пробуем форматы типа MM/DD/YYYY
-    )
-    
-    # Заменяем оставшиеся NaT значениями с dayfirst=True
-    mask = df[column_name].isna()
-    df.loc[mask, column_name] = pd.to_datetime(
-        df.loc[mask, column_name],
-        errors='coerce',
-        dayfirst=True  # Затем пробуем форматы типа DD.MM.YYYY
-    )
-    
-    # Форматируем результат в нужный строковый формат
-    df[column_name] = df[column_name].dt.strftime("%Y-%m-%d %H:%M:%S")
-    return df
-
 
 # Переименовывает столбцы в файлах и сохраняет в новые пути
 def rename():
@@ -138,3 +117,42 @@ def rename():
             print(f"Ошибка в файле {config['input']}: отсутствует столбец {e}")
         except Exception as e:
             print(f"Неизвестная ошибка при обработке {config['input']}: {str(e)}")
+
+
+
+def format_dates_column(file_name, column_name):
+    """
+    Форматирует даты в указанной колонке DataFrame и сохраняет результат в файл
+    
+    Параметры:
+    df - исходный DataFrame
+    column_name - имя колонки с датами
+    file_name - имя файла для сохранения (без расширения)
+    format - формат файла: 'csv' (по умолчанию) или 'excel'
+    index - сохранять индекс DataFrame (по умолчанию False)
+    """
+
+    df = pd.read_csv(file_name)
+
+    # Преобразование дат
+    df[column_name] = pd.to_datetime(
+        df[column_name],
+        errors='coerce',
+        infer_datetime_format=True,
+        dayfirst=False
+    )
+    
+    mask = df[column_name].isna()
+    df.loc[mask, column_name] = pd.to_datetime(
+        df.loc[mask, column_name],
+        errors='coerce',
+        dayfirst=True
+    )
+    
+    df[column_name] = df[column_name].dt.strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Сохранение в файл
+    df.to_csv(file_name, index=False)
+    
+    print(f"Файл сохранен как: {file_name}")
+    return df
