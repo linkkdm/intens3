@@ -45,12 +45,16 @@ for path in file_paths:
     print(f"Файл {path}: удалено {removed} столбцов")
 # %% 
 
-# Преобразование столбцов в тип float
-df10['Цена на бензин'] = df10['Цена на бензин'].str.replace(',', '.').astype(float)
-df10['Цена на дт'] = df10['Цена на дт'].str.replace(',', '.').astype(float)
 
-# Изменили разделитель на запятую и сохраним файл
-df10.to_csv('data\\Топливо.csv', sep=',', index=False)
+try:
+    # Преобразование столбцов в тип float
+    df10['Цена на бензин'] = df10['Цена на бензин'].str.replace(',', '.').astype(float)
+    df10['Цена на дт'] = df10['Цена на дт'].str.replace(',', '.').astype(float)
+
+    # Изменили разделитель на запятую и сохраним файл
+    df10.to_csv('data\\Топливо.csv', sep=',', index=False)
+except:
+    print("Данные уже изменены!")
 
 # %%
 
