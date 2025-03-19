@@ -6,7 +6,7 @@ import numpy as np
 # %%
 
 # Выгрузка самописных функций
-from functions.format_fu import rename
+from functions.format_fu import rename, format_dates_column
 from functions.main_fu import removing_columns
 # %%
 
@@ -53,6 +53,24 @@ df10['Цена на дт'] = df10['Цена на дт'].str.replace(',', '.').as
 df10.to_csv('data\\Топливо.csv', sep=',', index=False)
 
 # %%
+
 rename()
+# %%
+
+file_paths = [
+    'rename_data\\CHMF.csv',
+    'rename_data\\MAGN.csv',
+    'rename_data\\NLMK.csv',
+    'rename_data\\индекс-LME.csv',
+    'rename_data\\грузоперевозки.csv',
+    'rename_data\\данные-рынка-стройматериалов.csv',
+    'rename_data\\макропоказатели.csv',
+    'rename_data\\образец-подачи.csv',
+    'rename_data\\показатели-рынка-металла.csv',
+    'rename_data\\цены-на-сырье.csv'
+]
+
+for i in file_paths:
+    format_dates_column(i)
 
 # %%
