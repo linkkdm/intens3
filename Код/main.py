@@ -13,7 +13,6 @@ from functions.main_fu import removing_columns
 
 # Снятие ограничения на отображение колонок
 # pd.set_option('display.max_columns', None)
-# %%
 
 # Снятие ограничения на отображение строк
 # pd.set_option('display.max_rows', None)
@@ -22,25 +21,15 @@ from functions.main_fu import removing_columns
 df1 = pd.read_csv('data\\CHMF Акции.csv')
 df2 = pd.read_csv('data\\MAGN Акции.csv')
 df3 = pd.read_csv('data\\NLMK Акции.csv')
-# df4 = pd.read_csv('data\\sample_submission.csv')
-# df5 = pd.read_csv('data\\Грузоперевозки.csv')
-# df6 = pd.read_csv('data\\Данные-рынка-стройматериалов.csv')
+df4 = pd.read_csv('data\\sample_submission.csv')
+df5 = pd.read_csv('data\\Грузоперевозки.csv')
+df6 = pd.read_csv('data\\Данные-рынка-стройматериалов.csv')
 df7 = pd.read_csv('data\\Индекс-LME.csv')
 df8 = pd.read_csv('data\\Макропоказатели.csv')
-# df9 = pd.read_csv('data\\Показатели-рынка-металла.csv')
+df9 = pd.read_csv('data\\Показатели-рынка-металла.csv')
 df10 = pd.read_csv('data\\Топливо.csv', sep=';')
 df11 = pd.read_csv('data\\Цены-на-сырье.csv')
-# %%
-
-for i in ["data\\Грузоперевозки.csv",
-          "data\\Данные-рынка-стройматериалов.csv",
-          "data\\Показатели-рынка-металла.csv",
-          "data\\sample_submission.csv"
-          ]:
-    try:
-        os.remove(i)
-    except:
-        print(f'Файла {i} не существует.')
+# Не будут использоваться из-за даты: "data\\Грузоперевозки.csv", "data\\Данные-рынка-стройматериалов.csv", "data\\Показатели-рынка-металла.csv", "data\\sample_submission.csv"
 # %%
 
 file_paths = [
