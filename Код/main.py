@@ -22,23 +22,25 @@ from functions.main_fu import removing_columns
 df1 = pd.read_csv('data\\CHMF Акции.csv')
 df2 = pd.read_csv('data\\MAGN Акции.csv')
 df3 = pd.read_csv('data\\NLMK Акции.csv')
-df4 = pd.read_csv('data\\sample_submission.csv')
-df5 = pd.read_csv('data\\Грузоперевозки.csv')
-df6 = pd.read_csv('data\\Данные-рынка-стройматериалов.csv')
+# df4 = pd.read_csv('data\\sample_submission.csv')
+# df5 = pd.read_csv('data\\Грузоперевозки.csv')
+# df6 = pd.read_csv('data\\Данные-рынка-стройматериалов.csv')
 df7 = pd.read_csv('data\\Индекс-LME.csv')
 df8 = pd.read_csv('data\\Макропоказатели.csv')
-df9 = pd.read_csv('data\\Показатели-рынка-металла.csv')
+# df9 = pd.read_csv('data\\Показатели-рынка-металла.csv')
 df10 = pd.read_csv('data\\Топливо.csv', sep=';')
 df11 = pd.read_csv('data\\Цены-на-сырье.csv')
 # %%
 
-# for i in [df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11]:
-#     print(i[''].isna().sum())
-# %%
-
-os.remove("data\\Грузоперевозки.csv")
-os.remove("data\\Данные-рынка-стройматериалов.csv")
-os.remove("data\\Показатели-рынка-металла.csv")
+for i in ["data\\Грузоперевозки.csv",
+          "data\\Данные-рынка-стройматериалов.csv",
+          "data\\Показатели-рынка-металла.csv",
+          "data\\sample_submission.csv"
+          ]:
+    try:
+        os.remove(i)
+    except:
+        print(f'Файла {i} не существует.')
 # %%
 
 file_paths = [
@@ -72,7 +74,6 @@ file_paths = [
     'rename_data\\NLMK.csv',
     'rename_data\\индекс-LME.csv',
     'rename_data\\макропоказатели.csv',
-    'rename_data\\образец-подачи.csv',
     'rename_data\\цены-на-сырье.csv',
     'rename_data\\топливо.csv'
 ]

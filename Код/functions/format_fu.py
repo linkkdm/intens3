@@ -47,15 +47,6 @@ def rename():
             }
         },
         {
-            'input': 'data\\sample_submission.csv',
-            'output': 'rename_data\\образец-подачи.csv',
-            'columns': {
-                "dt": "date",
-                "Цена на арматуру": "price",
-                "Объем": "volume"
-            }
-        },
-        {
             'input': 'data\\Индекс-LME.csv',
             'output': 'rename_data\\индекс-LME.csv',
             'columns': {
