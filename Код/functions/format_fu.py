@@ -56,16 +56,6 @@ def rename():
             }
         },
         {
-            'input': 'data\\Грузоперевозки.csv',
-            'output': 'rename_data\\грузоперевозки.csv',
-            'columns': {"dt": "date"}
-        },
-        {
-            'input': 'data\\Данные-рынка-стройматериалов.csv',
-            'output': 'rename_data\\данные-рынка-стройматериалов.csv',
-            'columns': {"dt": "date"}
-        },
-        {
             'input': 'data\\Индекс-LME.csv',
             'output': 'rename_data\\индекс-LME.csv',
             'columns': {
@@ -80,11 +70,6 @@ def rename():
                 "dt": "date",
                 "Курс доллара": "Курс $"
             }
-        },
-        {
-            'input': 'data\\Показатели-рынка-металла.csv',
-            'output': 'rename_data\\показатели-рынка-металла.csv',
-            'columns': {"dt": "date"}
         },
         {
             'input': 'data\\Топливо.csv',

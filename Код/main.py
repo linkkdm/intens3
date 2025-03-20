@@ -3,6 +3,7 @@
 # Выгрузка необходимых библиотек
 import pandas as pd
 import numpy as np
+import os
 # %%
 
 # Выгрузка самописных функций
@@ -35,6 +36,11 @@ df11 = pd.read_csv('data\\Цены-на-сырье.csv')
 #     print(i[''].isna().sum())
 # %%
 
+os.remove("data\\Грузоперевозки.csv")
+os.remove("data\\Данные-рынка-стройматериалов.csv")
+os.remove("data\\Показатели-рынка-металла.csv")
+# %%
+
 file_paths = [
     'data\\Макропоказатели.csv',
     'data\\Цены-на-сырье.csv'
@@ -65,11 +71,8 @@ file_paths = [
     'rename_data\\MAGN.csv',
     'rename_data\\NLMK.csv',
     'rename_data\\индекс-LME.csv',
-    'rename_data\\грузоперевозки.csv',
-    'rename_data\\данные-рынка-стройматериалов.csv',
     'rename_data\\макропоказатели.csv',
     'rename_data\\образец-подачи.csv',
-    'rename_data\\показатели-рынка-металла.csv',
     'rename_data\\цены-на-сырье.csv',
     'rename_data\\топливо.csv'
 ]
@@ -89,12 +92,9 @@ for i in file_paths:
 try:
 
     file_paths = [
-        'rename_data\\данные-рынка-стройматериалов.csv',
-        'rename_data\\показатели-рынка-металла.csv',
         'rename_data\\CHMF.csv',
         'rename_data\\MAGN.csv',
         'rename_data\\NLMK.csv',
-        'rename_data\\грузоперевозки.csv'
         ]
 
     # Удаление лишних запятых в остальных файлах, с помощью написанной функции
