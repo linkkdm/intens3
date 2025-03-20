@@ -7,7 +7,7 @@ import numpy as np
 
 # Выгрузка самописных функций
 from functions.format_fu import rename, format_dates_column, clean_commas
-from functions.main_fu import removing_columns
+from functions.main_fu import removing_columns, remove_unnecessary_columns
 # %%
 
 # Снятие ограничения на отображение колонок
@@ -94,4 +94,17 @@ try:
 except Exception as e:
     print(f"Произошла ошибка при загрузке данных: {e}")
 
+# %%
+
+# Список файлов для обработки
+files = [
+    'rename_data/CHMF.csv',
+    'rename_data/MAGN.csv',
+    'rename_data/NLMK.csv'
+    ]
+    
+# Колонки, которые нужно удалить
+columns_to_drop = ['open', 'high_price', 'low_price']
+
+remove_unnecessary_columns(files, columns_to_drop)
 # %%

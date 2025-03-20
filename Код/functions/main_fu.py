@@ -2,7 +2,6 @@
 import pandas as pd
 
 
-
 # Удаляет столбцы с >60% пропусков, сохраняет результат в исходный файл и возвращает кол-во удаленных
 def removing_columns(file_path):
 
@@ -19,3 +18,18 @@ def removing_columns(file_path):
     # Сохраняем обратно в тот же файл
     df.to_csv(file_path, index=False, encoding='utf-8-sig')  # utf-8-sig для корректного отображения кириллицы
     return num_removed
+
+
+def remove_unnecessary_columns(files, columns_to_drop):
+    
+    for file_path in files:
+        # Читаем CSV-файл
+        df = pd.read_csv(file_path)
+        
+        # Удаляем ненужные колонки (игнорируем ошибки если колонки нет)
+        df.drop(columns=columns_to_drop, axis=1, inplace=True, errors='ignore')
+        
+        # Перезаписываем исходный файл
+        df.to_csv(file_path, index=False)
+
+
