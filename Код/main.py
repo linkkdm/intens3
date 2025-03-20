@@ -108,3 +108,20 @@ columns_to_drop = ['open', 'high_price', 'low_price']
 
 remove_unnecessary_columns(files, columns_to_drop)
 # %%
+
+
+# Загрузка и переименование колонок для каждого файла
+chmf = pd.read_csv('rename_data/CHMF.csv')
+chmf.columns = ['date'] + [f'CHMF_{col}' for col in chmf.columns if col != 'date']
+
+magn = pd.read_csv('rename_data/MAGN.csv', decimal=',')
+magn.columns = ['date'] + [f'MAGN_{col}' for col in magn.columns if col != 'date']
+
+nlmk = pd.read_csv('rename_data/NLMK.csv')
+nlmk.columns = ['date'] + [f'NLMK_{col}' for col in nlmk.columns if col != 'date']
+
+# Объединение данных по колонке date
+merged_df = chmf.merge(magn, on='date').merge(nlmk, on='date')
+
+merged_df.to_csv('merged_df.csv', index=False)
+# %%
