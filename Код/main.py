@@ -120,8 +120,9 @@ magn.columns = ['date'] + [f'MAGN_{col}' for col in magn.columns if col != 'date
 nlmk = pd.read_csv('rename_data/NLMK.csv')
 nlmk.columns = ['date'] + [f'NLMK_{col}' for col in nlmk.columns if col != 'date']
 
+lme = pd.read_csv('rename_data\\индекс-LME.csv')
 # Объединение данных по колонке date
-merged_df = chmf.merge(magn, on='date').merge(nlmk, on='date')
+merged_df = chmf.merge(magn, on='date').merge(nlmk, on='date').merge(lme, on='date')
 
 merged_df.to_csv('merged_df.csv', index=False)
 # %%
