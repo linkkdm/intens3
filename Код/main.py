@@ -6,7 +6,7 @@ import numpy as np
 # %%
 
 # Выгрузка самописных функций
-from functions.format_fu import rename, format_dates_column, clean_commas
+from functions.format_fu import rename, format_dates_column, clean_commas, m_and_k
 from functions.main_fu import removing_columns, remove_unnecessary_columns
 # %%
 
@@ -107,6 +107,12 @@ files = [
 columns_to_drop = ['open', 'high_price', 'low_price']
 
 remove_unnecessary_columns(files, columns_to_drop)
+# %%
+for path in files:
+    df = pd.read_csv(path)  # Загрузка данных
+    df['volume'] = df['volume'].apply(m_and_k)  # Применение функции к столбцу 'volume'
+    df.to_csv(path, sep=',', index=False)   # Сохранение данных
+
 # %%
 
 
