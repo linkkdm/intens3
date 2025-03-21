@@ -1,5 +1,6 @@
 
 import pandas as pd
+from decimal import Decimal, InvalidOperation
 
 
 # Переименовывает столбцы в файлах и сохраняет в новые пути
@@ -134,3 +135,21 @@ def clean_commas(path):
                 df[col] =  df[col].replace(',', '', regex=True).astype(float)
 
         df.to_csv(path, sep=',', index=False)
+
+
+def m_and_k(entrie):
+    # Если entrie уже является числом, возвращаем его
+    if isinstance(entrie, (int, float)):
+        return Decimal(str(entrie))  # Преобразуем в Decimal для единообразия
+
+    # Если entrie — строка, обрабатываем её
+    try:
+        if 'M' in entrie:
+            return Decimal(entrie.replace(',', '.').replace('M', '')) * Decimal('1000000')
+        elif 'K' in entrie:
+            return Decimal(entrie.replace(',', '.').replace('K', '')) * Decimal('1000')
+        else:
+            return Decimal(entrie.replace(',', '.'))
+    except InvalidOperation:
+        # Если преобразование в Decimal не удалось, возвращаем исходное значение
+        return entrie
