@@ -68,13 +68,6 @@ file_paths = [
 
 for i in file_paths:
     format_dates_column(i, 'date')
-
-# %%
-
-# dd = pd.read_csv('rename_data\\CHMF.csv')
-
-# dd['date'].info()
-
 # %%
 
 # Приводим числа в единый формат, т.е. удаляем ненужные запятые в колонках
@@ -116,6 +109,7 @@ for path in files:
 # %%
 
 columns_to_keep = [
+    'date',
     'ЖРС_Китай Iron ore fines Fe 62%, CFR',
     'ЖРС_Российские окатыши Fe 62-65,5%,SiO2 5,8-8,65, DAP Забайкальск-Манжули, $/т',
     'ЖРС_Россия концентрат Fe 64-68%, FCA руб./т, без НДС',
@@ -131,8 +125,7 @@ columns_to_keep = [
     'Чугун_FOB Россия Черное море, $/т',
     'ГБЖ_CFR Италия, $/т',
     'ЖРС_Средневзвешенная цена окатыши Fe 62-65,5%, Россия FCA руб./т, без НДС',
-    'ЖРС_Средневзвешенная цена аглоруда Fe 52-60%, Россия FCA руб./т, без НДС',
-    'date'
+    'ЖРС_Средневзвешенная цена аглоруда Fe 52-60%, Россия FCA руб./т, без НДС'
 ]
 
 # Загрузка данных (проверьте кодировку и разделитель при необходимости)
@@ -154,49 +147,60 @@ df_filtered.to_csv('rename_data\\processed_prices.csv', index=False, encoding='u
 print('Файл успешно обработан и сохранен как: rename_data\\processed_prices.csv')
 # %%
 
-# # Загрузка и переименование колонок для каждого файла
-# chmf = pd.read_csv('rename_data/CHMF.csv')
-# chmf.columns = ['date'] + [f'CHMF_{col}' for col in chmf.columns if col != 'date']
-
-# magn = pd.read_csv('rename_data/MAGN.csv', decimal=',')
-# magn.columns = ['date'] + [f'MAGN_{col}' for col in magn.columns if col != 'date']
-
-# nlmk = pd.read_csv('rename_data/NLMK.csv')
-# nlmk.columns = ['date'] + [f'NLMK_{col}' for col in nlmk.columns if col != 'date']
-
-# lme = pd.read_csv('rename_data\\индекс-LME.csv')
-# # Объединение данных по колонке date
-# merged_df = chmf.merge(magn, on='date').merge(nlmk, on='date').merge(lme, on='date').merge(df_filtered, on='date')
-
-# merged_df.to_csv('merged_df.csv', index=False)
-
-
-
-import pandas as pd
-
 # Функция для загрузки и подготовки данных
-def load_and_prepare(file_path, prefix, decimal='.'):
+def load_and_prepare_prefix(file_path, prefix, decimal='.'):
     df = pd.read_csv(file_path, decimal=decimal)
     df['date'] = pd.to_datetime(df['date'])  # Конвертация в datetime
     df.columns = ['date'] + [f'{prefix}_{col}' for col in df.columns if col != 'date']
     return df
 
 # Загрузка данных с переименованием колонок
-chmf = load_and_prepare('rename_data/CHMF.csv', 'CHMF')
-magn = load_and_prepare('rename_data/MAGN.csv', 'MAGN')
-nlmk = load_and_prepare('rename_data/NLMK.csv', 'NLMK')
+chmf = load_and_prepare_prefix('rename_data/CHMF.csv', 'CHMF')
+magn = load_and_prepare_prefix('rename_data/MAGN.csv', 'MAGN')
+nlmk = load_and_prepare_prefix('rename_data/NLMK.csv', 'NLMK')
+
+
+def load_and_prepare(file_path, decimal='.'):
+    df = pd.read_csv(file_path, decimal=decimal)
+    df['date'] = pd.to_datetime(df['date'])  # Конвертация в datetime
+    df.columns = ['date'] + [col for col in df.columns if col != 'date']
+    return df
+
+lme = load_and_prepare('rename_data\\индекс-LME.csv')
+makro = load_and_prepare('rename_data\\макропоказатели.csv')
+raw_materials = load_and_prepare('rename_data\\цены-на-сырье.csv')
+fuel = load_and_prepare('rename_data\\топливо.csv')
 
 # Объединение с outer join (сохраняем все даты)
-merged_df = chmf.merge(magn, on='date', how='outer').merge(nlmk, on='date', how='outer')
+merged_df = chmf.merge(magn, on='date', how='outer').merge(nlmk, on='date', how='outer').merge(lme, on='date', how='outer').merge(makro, on='date', how='outer').merge(raw_materials, on='date', how='outer').merge(fuel, on='date', how='outer')
 
 # Сортировка по дате (опционально)
 merged_df = merged_df.sort_values(by='date').reset_index(drop=True)
+
+merged_df.dropna(thresh=6, inplace=True)
+
+
+# Получаем список всех колонок, кроме date
+columns_to_fill = [col for col in merged_df.columns if col != "date"]
+    
+# Заполняем пропуски во всех колонках независимо от их названия
+merged_df[columns_to_fill] = merged_df[columns_to_fill].ffill()
 
 # Вывод результата
 merged_df.to_csv('merged_df.csv', index=False)
 # %%
 
 
+merged_df.shape
+# %%
 
-# print(merged_df.shape)
+na_counts = merged_df.isna().sum()
+na_counts[na_counts > 0]
+# %%
+
+merged_df = merged_df.drop(['lme_price', 'Чугун_CFR Китай, $/т'], axis=1).dropna()
+merged_df.to_csv('merged_df.csv', index=False)
+# %%
+
+print(merged_df.shape)
 # %%
