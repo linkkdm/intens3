@@ -1,6 +1,7 @@
 
 import pandas as pd
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Удаляет столбцы с >60% пропусков, сохраняет результат в исходный файл и возвращает кол-во удаленных
 def removing_columns(file_path):
@@ -33,28 +34,47 @@ def remove_unnecessary_columns(files, columns_to_drop):
         df.to_csv(file_path, index=False)
 
 
+def remove_outliers_iqr(df, columns):
+    df_clean = df.copy()
+    
+    # Создаем маску для всех строк без выбросов
+    mask = pd.Series(True, index=df.index)  # Изначально все строки включены
+    
+    for col in columns:
+        Q1 = df_clean[col].quantile(0.25)
+        Q3 = df_clean[col].quantile(0.75)
+        IQR = Q3 - Q1
+        
+        # Если все значения одинаковы (IQR=0), пропускаем столбец
+        if IQR == 0:
+            continue  
+            
+        lower = Q1 - 1.5 * IQR
+        upper = Q3 + 1.5 * IQR
+        
+        # Обновляем маску: оставляем строки, удовлетворяющие условию для текущего столбца
+        mask &= (df_clean[col] >= lower) & (df_clean[col] <= upper)
+    
+    return df_clean[mask]
 
-import pandas as pd
 
-# Список колонок для сохранения
-columns_to_keep = [
-    'ЖРС_Китай Iron ore fines Fe 62%, CFR',
-    'ЖРС_Российские окатыши Fe 62-65,5%,SiO2 5,8-8,65, DAP Забайкальск-Манжули, $/т',
-    'ЖРС_Россия концентрат Fe 64-68%, FCA руб./т, без НДС',
-    'ЖРС_Средневзвешенная цена концентрат Fe 64-68%, Россия FCA руб./т, без НДС',
-    'Концентрат коксующегося угля_Россия марка КО FCA руб./т, без НДС',
-    'Концентрат коксующегося угля_Россия марка КС FCA руб./т, без НДС',
-    'Концентрат коксующегося угля_HCC Австралия, $/t FOB',
-    'Лом_HMS 1/2 80:20, FOB EC Роттердам, $/т',
-    'Лом_3А, РФ CPT ж/д Центральный ФО, руб./т, без НДС',
-    'Лом_3А, FOB РФ Черное море, $/т',
-    'Чугун_CFR Италия, $/т',
-    'Чугун_Россия, FCA руб./т, без НДС',
-    'Чугун_FOB Россия Черное море, $/т',
-    'ГБЖ_CFR Италия, $/т',
-    'ЖРС_Средневзвешенная цена окатыши Fe 62-65,5%, Россия FCA руб./т, без НДС',
-    'ЖРС_Средневзвешенная цена аглоруда Fe 52-60%, Россия FCA руб./т, без НДС'
-]
-
-
-
+def plot_outliers(df, numeric_cols, max_cols_per_plot=15):
+    num_plots = (len(numeric_cols) // max_cols_per_plot + 1)
+    
+    for plot_idx in range(num_plots):
+        start_idx = plot_idx * max_cols_per_plot
+        end_idx = start_idx + max_cols_per_plot
+        cols_batch = numeric_cols[start_idx:end_idx]
+        
+        plt.figure(figsize=(20, 10))
+        plt.suptitle(f"Выбросы (группа {plot_idx + 1}/{num_plots})", fontsize=14, y=1.02)
+        
+        for i, col in enumerate(cols_batch, 1):
+            plt.subplot(3, 5, i)  # 3 строки, 5 столбцов = 15 графиков на фигуру
+            sns.boxplot(y=df[col], color='skyblue', width=0.4)
+            plt.title(col[:20] + "..." if len(col) > 20 else col, fontsize=9)
+            plt.ylabel('')  # Убираем подписи осей для экономии места
+            plt.xlabel('')
+            
+        plt.tight_layout()
+        plt.show()

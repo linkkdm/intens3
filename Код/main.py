@@ -3,15 +3,17 @@
 # Выгрузка необходимых библиотек
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 # %%
 
 # Выгрузка самописных функций
 from functions.format_fu import rename, format_dates_column, clean_commas, m_and_k
-from functions.main_fu import removing_columns, remove_unnecessary_columns
+from functions.main_fu import removing_columns, remove_unnecessary_columns, remove_outliers_iqr, plot_outliers
 # %%
 
 # Снятие ограничения на отображение колонок
-# pd.set_option('display.max_columns', None)
+pd.set_option('display.max_columns', None)
 
 # Снятие ограничения на отображение строк
 # pd.set_option('display.max_rows', None)
@@ -203,4 +205,97 @@ merged_df.to_csv('merged_df.csv', index=False)
 # %%
 
 print(merged_df.shape)
+# %%
+
+# Создаем копию исходного датафрейма для обработки
+df_encoded = merged_df.copy()
+
+# Преобразование столбца с датой
+df_encoded['date'] = pd.to_datetime(df_encoded['date'])
+
+# Обработка столбцов с процентами (включая замену запятых на точки)
+percent_columns = [col for col in df_encoded.columns if '_change_price' in col]
+for col in percent_columns:
+    df_encoded[col] = (
+        df_encoded[col]
+        .astype(str)
+        .str.replace('%', '', regex=False)  # Удаляем знак процента
+        .str.replace(',', '.', regex=False)  # Заменяем запятые на точки
+        .str.strip()  # Удаляем пробелы по краям
+        .astype(float)
+        / 100  # Конвертация в десятичные дроби
+    )
+
+# Преобразование остальных числовых столбцов (также обрабатываем запятые)
+numeric_columns = df_encoded.columns.difference(['date'] + percent_columns)
+for col in numeric_columns:
+    df_encoded[col] = (
+        df_encoded[col]
+        .astype(str)
+        .str.replace(',', '.', regex=False)  # Заменяем запятые на точки
+        .str.replace('[^\d.-]', '', regex=True)  # Удаляем все нецифровые символы кроме . и -
+        .replace('', pd.NA)  # Заменяем пустые строки на NA
+        .astype(float)
+    )
+
+# Вывод результатов
+print("Первые строки закодированного датафрейма:")
+print(df_encoded.head(2).to_string())
+# %%
+
+# Расчет корреляционной матрицы
+correlation_matrix = df_encoded.drop(columns=['date']).corr(numeric_only=True)
+
+# Настройка стиля графиков
+plt.style.use('ggplot')
+plt.rcParams['figure.figsize'] = [100, 100]  # Размер холста
+
+# Создаем маску для верхнего треугольника
+mask = np.triu(np.ones_like(correlation_matrix, dtype=bool))
+
+# Создаем тепловую карту
+sns.heatmap(
+    correlation_matrix,
+    mask=mask,
+    annot=True,
+    fmt=".2f",  # Формат отображения чисел
+    cmap='coolwarm',  # Цветовая схема
+    vmin=-1,
+    vmax=1,
+    linewidths=0.5,
+    cbar_kws={'label': 'Коэффициент корреляции'}
+)
+
+# Настройки отображения
+plt.title('Матрица корреляций', fontsize=18, pad=20)
+plt.xticks(rotation=45, ha='right', fontsize=10)
+plt.yticks(rotation=0, fontsize=10)
+plt.tight_layout()
+
+# Сохранение и отображение графика
+plt.savefig('correlation_matrix.png', dpi=300, bbox_inches='tight')
+plt.show()
+# %%
+
+try:
+    merged_df = merged_df.drop(columns=['CHMF_change_price', 'MAGN_change_price', 'NLMK_change_price'], axis=1)
+except:
+    print('Колонки уже были удалены')
+# %%
+
+merged_df.head()
+# %%
+
+# Использование
+numeric_cols = merged_df.columns[merged_df.columns != 'date'].tolist()
+plot_outliers(merged_df, numeric_cols)
+
+# %%
+
+# Использование (предполагая, что merged_df и numeric_cols уже определены)
+cleaned_iqr = remove_outliers_iqr(merged_df, numeric_cols)
+# %%
+
+print(merged_df.shape)
+print(cleaned_iqr.shape)
 # %%
