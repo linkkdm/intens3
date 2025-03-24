@@ -283,8 +283,6 @@ try:
     merged_df = merged_df.drop(columns=['CHMF_change_price', 'MAGN_change_price', 'NLMK_change_price'], axis=1)
 except:
     print('Колонки уже были удалены')
-
-merged_df.to_csv('merged_df.csv', index=False)
 # %%
 
 merged_df.head()
@@ -302,8 +300,61 @@ cleaned_iqr = remove_outliers_iqr(merged_df, numeric_cols)
 
 print(merged_df.shape)
 print(cleaned_iqr.shape)
+cleaned_iqr.to_csv('merged_df.csv', index=False)
 # %%
 
 dtype_dict = merged_df.dtypes.astype(str).to_list()
 print(set(dtype_dict))
 # %%
+
+from statsmodels.tsa.stattools import adfuller
+from IPython.display import display
+
+# Загрузка данных
+df = pd.read_csv('merged_df.csv', parse_dates=['dt'])
+df.set_index('dt', inplace=True)
+
+# Модифицированная функция проверки стационарности
+def check_stationarity(series):
+    result = adfuller(series.dropna())
+    return result[1]  # Возвращаем p-value
+
+# Анализ и преобразование данных
+stationary_df = df.copy()
+results = []
+
+for col in df.columns:
+    p_original = check_stationarity(df[col])
+    is_stationary = p_original < 0.05
+    
+    if not is_stationary:
+        # Применяем дифференцирование
+        transformed = df[col].diff().dropna()
+        p_transformed = check_stationarity(transformed)
+        stationary_df[col] = transformed
+        results.append({
+            'Колонка': col,
+            'Исходный p-value': round(p_original, 4),
+            'Преобразованный p-value': round(p_transformed, 4),
+            'Стационарность после преобразования': p_transformed < 0.05
+        })
+    else:
+        results.append({
+            'Колонка': col,
+            'Исходный p-value': round(p_original, 4),
+            'Преобразованный p-value': '-',
+            'Стационарность после преобразования': True
+        })
+
+# Удаление строк с NaN после преобразований
+stationary_df = stationary_df.dropna()
+
+# Возвращаем даты в отдельную колонку и сохраняем
+stationary_df = stationary_df.reset_index()
+stationary_df.to_csv('transformed_data.csv', index=False)
+
+# Создаем DataFrame с результатами
+results_df = pd.DataFrame(results)
+display(results_df)
+# %%
+
