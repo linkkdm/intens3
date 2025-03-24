@@ -3,11 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Удаляет столбцы с >60% пропусков, сохраняет результат в исходный файл и возвращает кол-во удаленных
+# Удаляет столбцы с >70% пропусков, сохраняет результат в исходный файл и возвращает кол-во удаленных
 def removing_columns(file_path):
 
     df = pd.read_csv(file_path, na_values=[''])
-    threshold = 0.6 * len(df)
+    threshold = 0.7 * len(df)
     
     # Находим столбцы для удаления
     cols_to_drop = df.columns[df.isna().sum() >= threshold].tolist()
