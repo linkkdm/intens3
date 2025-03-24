@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+# Выгрузка метрики
+from metric import decision_prices
 # %%
 
 # Выгрузка самописных функций
@@ -69,7 +71,7 @@ file_paths = [
 ]
 
 for i in file_paths:
-    format_dates_column(i, 'date')
+    format_dates_column(i, 'dt')
 # %%
 
 # Приводим числа в единый формат, т.е. удаляем ненужные запятые в колонках
@@ -111,7 +113,7 @@ for path in files:
 # %%
 
 columns_to_keep = [
-    'date',
+    'dt',
     'ЖРС_Китай Iron ore fines Fe 62%, CFR',
     'ЖРС_Российские окатыши Fe 62-65,5%,SiO2 5,8-8,65, DAP Забайкальск-Манжули, $/т',
     'ЖРС_Россия концентрат Fe 64-68%, FCA руб./т, без НДС',
@@ -152,20 +154,20 @@ print('Файл успешно обработан и сохранен как: re
 # Функция для загрузки и подготовки данных
 def load_and_prepare_prefix(file_path, prefix, decimal='.'):
     df = pd.read_csv(file_path, decimal=decimal)
-    df['date'] = pd.to_datetime(df['date'])  # Конвертация в datetime
-    df.columns = ['date'] + [f'{prefix}_{col}' for col in df.columns if col != 'date']
+    df['dt'] = pd.to_datetime(df['dt'])  # Конвертация в datetime
+    df.columns = ['dt'] + [f'{prefix}_{col}' for col in df.columns if col != 'dt']
     return df
 
 # Загрузка данных с переименованием колонок
-chmf = load_and_prepare_prefix('rename_data/CHMF.csv', 'CHMF')
-magn = load_and_prepare_prefix('rename_data/MAGN.csv', 'MAGN')
-nlmk = load_and_prepare_prefix('rename_data/NLMK.csv', 'NLMK')
+chmf = load_and_prepare_prefix('rename_data\\CHMF.csv', 'CHMF')
+magn = load_and_prepare_prefix('rename_data\\MAGN.csv', 'MAGN')
+nlmk = load_and_prepare_prefix('rename_data\\NLMK.csv', 'NLMK')
 
 
 def load_and_prepare(file_path, decimal='.'):
     df = pd.read_csv(file_path, decimal=decimal)
-    df['date'] = pd.to_datetime(df['date'])  # Конвертация в datetime
-    df.columns = ['date'] + [col for col in df.columns if col != 'date']
+    df['dt'] = pd.to_datetime(df['dt'])  # Конвертация в datetime
+    df.columns = ['dt'] + [col for col in df.columns if col != 'dt']
     return df
 
 lme = load_and_prepare('rename_data\\индекс-LME.csv')
@@ -174,16 +176,16 @@ raw_materials = load_and_prepare('rename_data\\цены-на-сырье.csv')
 fuel = load_and_prepare('rename_data\\топливо.csv')
 
 # Объединение с outer join (сохраняем все даты)
-merged_df = chmf.merge(magn, on='date', how='outer').merge(nlmk, on='date', how='outer').merge(lme, on='date', how='outer').merge(makro, on='date', how='outer').merge(raw_materials, on='date', how='outer').merge(fuel, on='date', how='outer')
+merged_df = chmf.merge(magn, on='dt', how='outer').merge(nlmk, on='dt', how='outer').merge(lme, on='dt', how='outer').merge(makro, on='dt', how='outer').merge(raw_materials, on='dt', how='outer').merge(fuel, on='dt', how='outer')
 
 # Сортировка по дате (опционально)
-merged_df = merged_df.sort_values(by='date').reset_index(drop=True)
+merged_df = merged_df.sort_values(by='dt').reset_index(drop=True)
 
 merged_df.dropna(thresh=6, inplace=True)
 
 
-# Получаем список всех колонок, кроме date
-columns_to_fill = [col for col in merged_df.columns if col != "date"]
+# Получаем список всех колонок, кроме dt
+columns_to_fill = [col for col in merged_df.columns if col != "dt"]
     
 # Заполняем пропуски во всех колонках независимо от их названия
 merged_df[columns_to_fill] = merged_df[columns_to_fill].ffill()
@@ -211,7 +213,7 @@ print(merged_df.shape)
 df_encoded = merged_df.copy()
 
 # Преобразование столбца с датой
-df_encoded['date'] = pd.to_datetime(df_encoded['date'])
+df_encoded['dt'] = pd.to_datetime(df_encoded['dt'])
 
 # Обработка столбцов с процентами (включая замену запятых на точки)
 percent_columns = [col for col in df_encoded.columns if '_change_price' in col]
@@ -227,7 +229,7 @@ for col in percent_columns:
     )
 
 # Преобразование остальных числовых столбцов (также обрабатываем запятые)
-numeric_columns = df_encoded.columns.difference(['date'] + percent_columns)
+numeric_columns = df_encoded.columns.difference(['dt'] + percent_columns)
 for col in numeric_columns:
     df_encoded[col] = (
         df_encoded[col]
@@ -244,7 +246,7 @@ print(df_encoded.head(2).to_string())
 # %%
 
 # Расчет корреляционной матрицы
-correlation_matrix = df_encoded.drop(columns=['date']).corr(numeric_only=True)
+correlation_matrix = df_encoded.drop(columns=['dt']).corr(numeric_only=True)
 
 # Настройка стиля графиков
 plt.style.use('ggplot')
@@ -281,13 +283,15 @@ try:
     merged_df = merged_df.drop(columns=['CHMF_change_price', 'MAGN_change_price', 'NLMK_change_price'], axis=1)
 except:
     print('Колонки уже были удалены')
+
+merged_df.to_csv('merged_df.csv', index=False)
 # %%
 
 merged_df.head()
 # %%
 
 # Использование
-numeric_cols = merged_df.columns[merged_df.columns != 'date'].tolist()
+numeric_cols = merged_df.columns[merged_df.columns != 'dt'].tolist()
 plot_outliers(merged_df, numeric_cols)
 
 # %%
@@ -298,4 +302,8 @@ cleaned_iqr = remove_outliers_iqr(merged_df, numeric_cols)
 
 print(merged_df.shape)
 print(cleaned_iqr.shape)
+# %%
+
+dtype_dict = merged_df.dtypes.astype(str).to_list()
+print(set(dtype_dict))
 # %%

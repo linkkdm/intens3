@@ -12,7 +12,7 @@ def rename():
             'input': 'data\\CHMF Акции.csv',
             'output': 'rename_data\\CHMF.csv',
             'columns': {
-                "Date": "date",
+                "Date": "dt",
                 "Price": "price",
                 "Open": "open",
                 "High": "high_price",
@@ -25,7 +25,7 @@ def rename():
             'input': 'data\\MAGN Акции.csv',
             'output': 'rename_data\\MAGN.csv',
             'columns': {
-                "Дата": "date",
+                "Дата": "dt",
                 "Цена": "price",
                 "Откр.": "open",
                 "Макс.": "high_price",
@@ -38,7 +38,7 @@ def rename():
             'input': 'data\\NLMK Акции.csv',
             'output': 'rename_data\\NLMK.csv',
             'columns': {
-                "Date": "date",
+                "Date": "dt",
                 "Price": "price",
                 "Open": "open",
                 "High": "high_price",
@@ -51,7 +51,7 @@ def rename():
             'input': 'data\\Индекс-LME.csv',
             'output': 'rename_data\\индекс-LME.csv',
             'columns': {
-                "дата": "date",
+                "дата": "dt",
                 "цена": "lme_price"
             }
         },
@@ -59,19 +59,18 @@ def rename():
             'input': 'data\\Макропоказатели.csv',
             'output': 'rename_data\\макропоказатели.csv',
             'columns': {
-                "dt": "date",
                 "Курс доллара": "Курс $"
             }
         },
         {
             'input': 'data\\Топливо.csv',
             'output': 'rename_data\\топливо.csv',
-            'columns': {"dt": "date"}
+            'columns': {}
         },
         {
             'input': 'data\\Цены-на-сырье.csv',
             'output': 'rename_data\\цены-на-сырье.csv',
-            'columns': {"dt": "date"}
+            'columns': {}
         }
     ]
 
@@ -131,7 +130,7 @@ def clean_commas(path):
 
         # Применение ко всем числовым столбцам
         for col in df.select_dtypes(include=['object']).columns:
-            if col not in ['date', 'volume', 'change_price']:
+            if col not in ['dt', 'volume', 'change_price']:
                 df[col] =  df[col].replace(',', '', regex=True).astype(float)
 
         df.to_csv(path, sep=',', index=False)
