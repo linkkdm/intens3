@@ -3,7 +3,7 @@ def decision_prices(test):
     
     test = test.set_index('dt') 
     tender_price = test['Цена на арматуру']
-    decision = test['Объем']
+    decision = test['N']
     start_date = test.index.min()
     end_date = test.index.max()
     
