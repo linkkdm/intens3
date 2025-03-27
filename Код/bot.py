@@ -5,25 +5,41 @@ import pickle
 from datetime import datetime, timedelta
 import asyncio
 import logging
+import numpy as np
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Загрузка модели и данных
+# Загрузка данных и модели
 try:
-    with open('catboost_model.pkl', 'rb') as f:
+    # Загрузка и подготовка данных
+    train = pd.read_csv('traintest/train.csv', 
+                       parse_dates=['dt'], 
+                       index_col="dt")
+    
+    test = pd.read_csv('traintest/test.csv',
+                      parse_dates=['dt'],
+                      index_col='dt')
+    
+    # Объединение train и test для максимальной истории
+    full_data = pd.concat([train, test])
+    full_data = full_data.sort_index()
+    
+    # Подготовка данных с лагами
+    def prepare_data(df, target_col='Цена на арматуру', window=3):
+        df = df.copy()
+        for i in range(1, window+1):
+            df[f'lag_{i}'] = df[target_col].shift(i)
+        df['rolling_mean'] = df[target_col].rolling(window).mean()
+        return df.dropna()
+    
+    processed_data = prepare_data(full_data)
+    
+    # Загрузка модели
+    with open('rf_model.pkl', 'rb') as f:
         model = pickle.load(f)
     logger.info("Model loaded successfully")
-
-    transformed_weekly = pd.read_csv('optimized_transformed_data.csv', parse_dates=['dt'])
-    train = pd.read_csv('traintest/train.csv', parse_dates=['dt'])
-    
-    # Объединение данных
-    merged_data = pd.merge(train, transformed_weekly, on='dt', how='left')
-    merged_data.set_index('dt', inplace=True)
-    last_historical_date = merged_data.index.max()
-    logger.info(f"Last available historical date: {last_historical_date}")
 
 except Exception as e:
     logger.error(f"Initialization error: {e}")
@@ -33,71 +49,77 @@ except Exception as e:
 bot = Bot(token='7611697591:AAEY-sZNKJrdqgmdu5bHGDdO-mKxKlF-i4k')
 dp = Dispatcher()
 
-def generate_future_features(target_date: datetime, last_known_data: pd.Series) -> pd.DataFrame:
-    """Генерация признаков для будущих дат на основе последних доступных данных"""
-    features = {
-        'price_lag_1': last_known_data['Цена на арматуру'].iloc[-1],
-        'price_lag_2': last_known_data['Цена на арматуру'].iloc[-2],
-        'price_lag_3': last_known_data['Цена на арматуру'].iloc[-3],
-        'rolling_mean_3': last_known_data['Цена на арматуру'].rolling(3).mean().iloc[-1]
-    }
-    
-    # Добавление внешних признаков (пример для одного показателя)
-    for col in transformed_weekly.columns:
-        if col != 'dt' and col in last_known_data.columns:
-            features[col] = last_known_data[col].iloc[-1]
-    
-    return pd.DataFrame([features])
+def get_last_available_date():
+    return processed_data.index.max().date()
+
+def prepare_features(target_date: datetime):
+    """Подготовка признаков для указанной даты"""
+    try:
+        target_date = target_date.date()
+        last_available = get_last_available_date()
+        
+        # Если дата в будущем - используем последние доступные данные
+        if target_date > last_available:
+            logger.info("Using last available data for future prediction")
+            latest = processed_data.iloc[-1]
+            return pd.DataFrame([{
+                'lag_1': latest['Цена на арматуру'],
+                'lag_2': processed_data.iloc[-2]['Цена на арматуру'],
+                'lag_3': processed_data.iloc[-3]['Цена на арматуру'],
+                'rolling_mean': latest['rolling_mean']
+            }])
+            
+        # Если дата в прошлом - используем исторические данные
+        if target_date in processed_data.index:
+            return processed_data.loc[[target_date], ['lag_1', 'lag_2', 'lag_3', 'rolling_mean']]
+            
+        return None
+        
+    except Exception as e:
+        logger.error(f"Feature preparation error: {e}")
+        return None
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     await message.answer(
-        "🏗 Привет! Я помощник для закупки арматуры\n\n"
-        "📅 Введите дату в формате ГГГГ-ММ-ДД (только будущие даты)\n"
+        "🏗 Бот для прогнозирования закупок арматуры\n\n"
+        "📅 Введите дату в формате ГГГГ-ММ-ДД\n"
         "Пример: 2024-03-25\n"
-        "Я подскажу оптимальное количество недель для закупки!"
+        "Я предскажу оптимальное количество недель для закупки!"
     )
 
 @dp.message()
 async def handle_message(message: types.Message):
     try:
         date_str = message.text.strip()
-        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        today = datetime.now().date()
+        target_date = datetime.strptime(date_str, '%Y-%m-%d')
         
-        # Проверка что дата не в прошлом
-        if target_date <= today:
-            await message.answer("🚫 Введите будущую дату (позже завтрашнего дня)")
-            return
-            
         # Проверка что это понедельник
         if target_date.weekday() != 0:
             await message.answer("📅 Дата должна быть понедельником!")
             return
-
-        # Используем последние доступные данные
-        last_4_weeks = merged_data.last('4W')
-        if len(last_4_weeks) < 3:
-            await message.answer("⚠️ Недостаточно данных для прогноза")
+            
+        # Подготовка признаков
+        features = prepare_features(target_date)
+        
+        if features is None or features.isna().any().any():
+            await message.answer("⚠️ Недостаточно данных для анализа")
             return
 
-        # Генерация признаков
-        features = generate_future_features(target_date, last_4_weeks)
-        
-        # Прогноз
+        # Прогнозирование
         prediction = model.predict(features)[0]
-        prediction = max(1, min(6, prediction))  # Ограничение от 1 до 6 недель
+        weeks = max(1, min(6, int(round(prediction))))
         
         response = (
-            f"📅 Прогноз на {target_date.strftime('%d.%m.%Y')}\n"
-            f"🔮 Рекомендуемая закупка на: {prediction} недель\n\n"
-            f"Совет: {'Увеличьте закупку' if prediction > 3 else 'Закупайте небольшими партиями'}"
+            f"📅 На дату {target_date.strftime('%d.%m.%Y')}\n"
+            f"📈 Рекомендуемое количество недель для закупки: {weeks}\n\n"
+            f"Совет: {'Увеличьте объем закупки' if weeks > 3 else 'Закупайте небольшими партиями'}"
         )
         
         await message.answer(response)
 
     except ValueError:
-        await message.answer("❌ Неверный формат! Используйте ГГГГ-ММ-ДД\nПример: 2024-03-25")
+        await message.answer("❌ Неверный формат даты! Используйте ГГГГ-ММ-ДД")
     except Exception as e:
         logger.error(f"Error: {e}")
         await message.answer("⚠️ Ошибка обработки запроса")
